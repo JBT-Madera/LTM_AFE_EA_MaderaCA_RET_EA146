@@ -6278,11 +6278,11 @@ void LoadProcessVariables()
 	flCoolWaterLowFlowRate = 1200;
 	flCookWaterShutDownFlowRate = 1300;
 
-	flWaterHighLevelAlarm = 25.0;
-	flWaterLowLevelAlarm = 10.0;
+	flWaterHighLevelAlarm = 65.0;
+	flWaterLowLevelAlarm = 30.0;
 
-	flWaterDrainOnLevel = 20.0;
-	flWaterDrainOffLevel = 17.0;
+	flWaterDrainOnLevel = 50.0;
+	flWaterDrainOffLevel = 45.0;
 
 	bRecipeSelectionFlag = true; // Successful Recipe & PV Load flag.
 
@@ -8402,6 +8402,35 @@ void CommonInit()
 		DigitalIO.SetDigitalOut(DO_DRAIN_VLV, Off);
 		DigitalIO.SetDigitalOut(DO_COND_VLV, Off);
 		DigitalIO.SetDigitalOut(DO_STEAM_BLK_VLV, Off);
+		DigitalIO.SetDigitalOut(DO_STEAM_BYPASS_VLV, Off);
+		DigitalIO.SetDigitalOut(DO_PREHEAT_VLV, Off);
+		DigitalIO.SetDigitalOut(DO_WATER_FILL_VLV, Off);
+		DigitalIO.SetDigitalOut(DO_HE_BYPASS_OPEN, Off);
+		DigitalIO.SetDigitalOut(DO_HE_BYPASS_CLOSE, Onn);
+
+		DigitalIO.SetDigitalOut(DO_PUMP_1, Off);
+		DigitalIO.SetDigitalOut(DO_PUMP_2, Off);
+		bPumpIsRunning = false;
+
+		// Now Set All AO to what is needed in this phase
+		PID.PIDStop(AO_STEAM, true);
+		PID.PIDStop(AO_WATER, true);
+		PID.PIDStop(AO_VENT, true);
+		PID.PIDStop(AO_AIR, true);
+		PID.PIDStop(AO_SPLT_RNG, false);
+		//AnalogIO.SetAnalogOut(AO_STEAM, 0.0);
+		//AnalogIO.SetAnalogOut(AO_WATER, 0.0);
+		//AnalogIO.SetAnalogOut(AO_VENT, 0.0);
+		//AnalogIO.SetAnalogOut(AO_AIR, 0.0);
+		AnalogIO.SetAnalogOut(AO_SPLT_RNG, 50);//Close air and vent control valves
+	}
+	
+	if (bPreheatRunning)
+	{
+		// Set the vavles in the initial state for this phase
+		DigitalIO.SetDigitalOut(DO_DRAIN_VLV, Off);
+		DigitalIO.SetDigitalOut(DO_COND_VLV, Off);
+		DigitalIO.SetDigitalOut(DO_STEAM_BLK_VLV, Onn);
 		DigitalIO.SetDigitalOut(DO_STEAM_BYPASS_VLV, Off);
 		DigitalIO.SetDigitalOut(DO_PREHEAT_VLV, Off);
 		DigitalIO.SetDigitalOut(DO_WATER_FILL_VLV, Off);
