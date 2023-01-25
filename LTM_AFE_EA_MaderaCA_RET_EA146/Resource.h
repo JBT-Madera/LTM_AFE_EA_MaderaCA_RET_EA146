@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by MyControllerScript.rc
+// Used by LTM_AFE_EA_MaderaCA_RET_EA146.rc
 //
 #define IDR_MAINFRAME                   128
 
