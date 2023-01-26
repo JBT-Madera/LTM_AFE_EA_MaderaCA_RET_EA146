@@ -4829,8 +4829,6 @@ void PromptForInitialOperatorEntries()
 		
 	}//end of if((!bShutDownFlag) && (!bProblemWithDataEntryFlag))
 
-	//tcio.ReadSTRING(L"iOPS.LTM_2_iOPS.csBatchCode", csBatchCode, 60); // v.17 RMH Added to read from TCIO tag dn then write as a log
-	//Display.Log(csBatchCode);
 
 }	// end of PromptForinitialOperatorEntries
 
