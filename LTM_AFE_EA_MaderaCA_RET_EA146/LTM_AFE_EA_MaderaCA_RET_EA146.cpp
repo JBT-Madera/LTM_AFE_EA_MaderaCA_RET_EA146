@@ -313,6 +313,7 @@ bFillRunning = false,
 bCookTimeCompleted = false,
 bCookCompleteFlag = true,
 bCookRunning = false,
+bCookStabilizationRunning = false,
 bCoolPSIPhaseCompleteFlag = true,
 bDrainCompleteFlag = false,
 bDrainRunning = false,
@@ -2740,9 +2741,13 @@ void ComeUpPhaseSWSTemperature()
 					DigitalIO.SetDigitalOut(DO_DRAIN_VLV, Off);
 					DigitalIO.SetDigitalOut(DO_COND_VLV, Off);
 				}
-				if (flCurrentTemperature > flSteamBoostOff)
+				if ((flCurrentTemperature > flDisplayLoopTempSP) || (flCurrentTemperature > flSteamBoostOff))
 				{
 					DigitalIO.SetDigitalOut(DO_STEAM_BYPASS_VLV, Off);
+				}
+				if ((flCurrentTemperature < (flDisplayLoopTempSP - 2.0)) && (flCurrentTemperature < flSteamBoostOff))
+				{
+					DigitalIO.SetDigitalOut(DO_STEAM_BYPASS_VLV, Onn);
 				}
 				Sleep(250);
 			} // End of This Phase STEP
@@ -3113,6 +3118,7 @@ void CookPhase()
 	bIsInProcess		= true;		//machine is in process starting at come-up to end of cooling.
 	bIsInIdle			= false;	//machine is idle (true) only before Fill-phase and after Drain-phase.
 	bCookRunning		= true;
+	bCookStabilizationRunning = true;
 
 	if (bSplitRangeCompleteFlag && (bSWSOnlyRecipeFlag || bCleaningRecipeSelected))	// Call if required for cook
 	{
@@ -3255,7 +3261,7 @@ void CookPhase()
 		flDisplayLoopTempSP = (float)PID.GetPIDSetPoint(AO_STEAM);
 		flDisplayLoopPsiSP = (float)PID.GetPIDSetPoint(AO_SPLT_RNG);
 		// Added to set the time on the main display screen
-		lCurStepSecSP = (long)flCookStabilizationTime;
+		/*lCurStepSecSP = (long)flCookStabilizationTime;
 
 		if ((lCurStepSecSP - PinesTime1.GetElapsedTime()) > 0)
 		{
@@ -3263,7 +3269,7 @@ void CookPhase()
 		}
 		else
 			lCurStepSecRemain = 0;
-
+		*/
 		if (bAddCookTimeFlag)
 		{
 			Display.KillEntry();
@@ -3286,6 +3292,8 @@ void CookPhase()
 		Sleep(250);
 	}
 	// *** End StabilizationTime ***
+
+	bCookStabilizationRunning = false;
 
 	Display.KillEntry();
 
@@ -3358,7 +3366,7 @@ void CookPhase()
 				flDisplayLoopTempSP = (float)PID.GetPIDSetPoint(AO_STEAM);
 				flDisplayLoopPsiSP = (float)PID.GetPIDSetPoint(AO_SPLT_RNG);
 				// Added to set the time on the main display screen
-				lCurStepSecSP = (long)flCTIME;
+				/*lCurStepSecSP = (long)flCTIME;
 
 				if ((lCurStepSecSP - PinesTime1.GetElapsedTime()) > 0)
 				{
@@ -3366,7 +3374,7 @@ void CookPhase()
 				}
 				else
 					lCurStepSecRemain = 0;
-
+				*/
 				//Level Control
 				if ((flCurrentWaterLevel > flWaterDrainOnLevel) && !bCleaningRecipeSelected)
 				{
@@ -6271,7 +6279,7 @@ void LoadProcessVariables()
 	flLongFillTime = 300;
 
 	// These alarm values will change with every validated system
-	flWaterHighFlowRate = 1800;
+	flWaterHighFlowRate = 2500;
 	flHeatingWaterLowFlowRate = 1400;
 	flCoolWaterLowFlowRate = 1200;
 	flCookWaterShutDownFlowRate = 1300;
@@ -6279,8 +6287,8 @@ void LoadProcessVariables()
 	flWaterHighLevelAlarm = 65.0;
 	flWaterLowLevelAlarm = 30.0;
 
-	flWaterDrainOnLevel = 50.0;
-	flWaterDrainOffLevel = 45.0;
+	flWaterDrainOnLevel = 60.0;
+	flWaterDrainOffLevel = 55.0;
 
 	bRecipeSelectionFlag = true; // Successful Recipe & PV Load flag.
 
@@ -7047,7 +7055,10 @@ void MiscTasks()
 			flDisplayLoopTempSP = (float)PID.GetPIDSetPoint(AO_STEAM);
 			flDisplayLoopPsiSP = (float)PID.GetPIDSetPoint(AO_SPLT_RNG);
 			// Added to set the time on the main display screen
-			lCurStepSecSP = (long)flCTIME;
+			if (bCookStabilizationRunning)
+				lCurStepSecSP = (long)flCookStabilizationTime;
+			else
+				lCurStepSecSP = (long)flCTIME;
 
 			if ((lCurStepSecSP - PinesTime1.GetElapsedTime()) > 0)
 			{
